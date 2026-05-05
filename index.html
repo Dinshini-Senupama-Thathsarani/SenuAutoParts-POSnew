@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Senu Auto Parts POS</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=Share+Tech+Mono&family=Barlow:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+    <link rel="stylesheet" href="assets/styles/styles.css">
+</head>
+<body>
+
+<!-- ═══════════════ LOGIN ═══════════════ -->
+<div id="login-view">
+    <div class="login-card">
+        <div class="brand">🔧 Senu<span> Auto Parts</span></div>
+        <small class="brand" style="font-size:12px;font-weight:400;color:var(--muted);font-family:var(--font-mono);letter-spacing:2px">BODY PARTS SPECIALIST</small>
+        <p class="hint" style="margin-top:20px;margin-bottom:24px">// AUTHORIZED PERSONNEL ONLY</p>
+        <div class="mb-3">
+            <label class="form-label">Username</label>
+            <input type="text" id="login-user" class="form-control" placeholder="admin">
+        </div>
+        <div class="mb-4">
+            <label class="form-label">Password</label>
+            <input type="password" id="login-pass" class="form-control" placeholder="••••••••">
+            <div id="login-error" style="color:var(--danger);font-size:11px;font-family:var(--font-mono);margin-top:6px;display:none">⚠ Invalid credentials</div>
+        </div>
+        <button class="btn-amber w-100" onclick="AuthController.login()">SIGN IN →</button>
+        <p class="hint" style="margin-top:14px;text-align:center">Default: admin / admin123</p>
+    </div>
+</div>
+
+<!-- ═══════════════ APP ═══════════════ -->
+<div id="app-view" style="display:none;flex-direction:column">
+
+    <!-- TOPBAR -->
+    <div class="topbar">
+        <div class="topbar-brand">🔧 Senu <span style="font-weight:400;font-size:16px"> Auto Parts</span></div>
+        <div class="topbar-right">
+            <span class="topbar-time" id="live-time">00:00:00</span>
+            <span class="topbar-user" id="topbar-user">admin</span>
+            <button class="btn-logout" onclick="AuthController.logout()"><i class="bi bi-power"></i> LOGOUT</button>
+        </div>
+    </div>
+
+    <!-- SHELL -->
+    <div class="shell">
+        <!-- SIDEBAR -->
+        <div class="sidebar">
+            <div class="nav-section-label">MAIN</div>
+            <div class="nav-item active" onclick="navigate('dashboard')" data-page="dashboard"><i class="bi bi-grid-1x2"></i> Dashboard</div>
+            <div class="nav-item" onclick="navigate('order')" data-page="order"><i class="bi bi-receipt"></i> New Order</div>
+            <div class="nav-section-label" style="margin-top:8px">MANAGE</div>
+            <div class="nav-item" onclick="navigate('customers')" data-page="customers"><i class="bi bi-person-lines-fill"></i> Customers</div>
+            <div class="nav-item" onclick="navigate('items')" data-page="items"><i class="bi bi-boxes"></i> Inventory</div>
+            <div class="nav-item" onclick="navigate('history')" data-page="history"><i class="bi bi-clock-history"></i> Order History</div>
+        </div>
+
+        <!-- CONTENT -->
+        <div class="content">
+
+
+            <!-- ── DASHBOARD ── -->
+            <div id="page-dashboard" class="page active">
+
+                <div class="dash-welcome">
+                    <div>
+                        <div class="dash-welcome-title">Good day, <span id="dash-username">Admin</span> 👋</div>
+                        <div class="dash-welcome-sub">Here's what's happening at Senu Auto Parts today.</div>
+                    </div>
+                    <button class="btn-amber" onclick="navigate('order')" style="white-space:nowrap"><i class="bi bi-plus-circle me-2"></i>NEW ORDER</button>
+                </div>
+
+                <div class="row g-3 mb-4">
+                    <div class="col-6 col-md-3"><div class="stat-card stat-amber"><div class="stat-label">Total Revenue</div><div class="stat-value" id="stat-revenue">Rs 0</div><i class="bi bi-cash-coin stat-icon"></i></div></div>
+                    <div class="col-6 col-md-3"><div class="stat-card stat-green"><div class="stat-label">Orders Placed</div><div class="stat-value" id="stat-orders">0</div><i class="bi bi-receipt stat-icon"></i></div></div>
+                    <div class="col-6 col-md-3"><div class="stat-card stat-blue"><div class="stat-label">Customers</div><div class="stat-value" id="stat-customers">0</div><i class="bi bi-people stat-icon"></i></div></div>
+                    <div class="col-6 col-md-3"><div class="stat-card stat-red"><div class="stat-label">Low Stock</div><div class="stat-value" id="stat-lowstock">0</div><i class="bi bi-exclamation-triangle stat-icon"></i></div></div>
+                </div>
+
+                <div class="card-pos mb-4">
+                    <div class="card-header-pos">
+                        <h6><i class="bi bi-fire me-2" style="color:var(--amber)"></i>BEST SELLING PARTS</h6>
+                        <span class="code-badge">Top 6</span>
+                    </div>
+                    <div class="card-body-pos">
+                        <div class="bestseller-grid" id="bestseller-grid"></div>
+                    </div>
+                </div>
+
+                <div class="row g-3">
+                    <div class="col-md-7">
+                        <div class="card-pos">
+                            <div class="card-header-pos"><h6><i class="bi bi-receipt me-2"></i>RECENT ORDERS</h6><button class="btn-outline-pos" onclick="navigate('history')">View All</button></div>
+                            <div class="card-body-pos" style="padding:0">
+                                <table class="table-pos w-100"><thead><tr><th>ORDER ID</th><th>CUSTOMER</th><th>TOTAL</th><th>DATE</th></tr></thead>
+                                    <tbody id="dash-recent-orders"><tr><td colspan="4"><div class="empty-state"><i class="bi bi-receipt"></i><p>No orders yet</p></div></td></tr></tbody></table>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-5">
+                        <div class="card-pos">
+                            <div class="card-header-pos"><h6><i class="bi bi-exclamation-triangle me-2" style="color:var(--warn)"></i>LOW STOCK ALERT</h6></div>
+                            <div class="card-body-pos" style="padding:0">
+                                <table class="table-pos w-100"><thead><tr><th>PART</th><th>CODE</th><th>QTY</th></tr></thead>
+                                    <tbody id="dash-low-stock"><tr><td colspan="3"><div class="empty-state"><i class="bi bi-check-circle"></i><p>All levels OK</p></div></td></tr></tbody></table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ── CUSTOMERS ── -->
+            <div id="page-customers" class="page">
+                <div class="pg-header d-flex justify-content-between align-items-start">
+                    <div><div class="pg-title">CUSTOMERS</div><div class="pg-sub">// manage customer records</div></div>
+                    <button class="btn-amber" onclick="CustomerController.openAddModal()"><i class="bi bi-plus-lg me-1"></i>ADD CUSTOMER</button>
+                </div>
+                <div class="card-pos mb-3" style="padding:14px 18px">
+                    <div class="search-wrap"><i class="bi bi-search"></i><input type="text" class="form-control" id="customer-search" placeholder="Search by name, phone or address…" oninput="CustomerController.search()"></div>
+                </div>
+                <div class="card-pos">
+                    <div class="card-body-pos" style="padding:0">
+                        <table class="table-pos"><thead><tr><th>#</th><th>NAME</th><th>PHONE</th><th>ADDRESS</th><th>ACTIONS</th></tr></thead>
+                            <tbody id="customer-table-body"></tbody></table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ── ITEMS ── -->
+            <div id="page-items" class="page">
+                <div class="pg-header d-flex justify-content-between align-items-start">
+                    <div><div class="pg-title">INVENTORY</div><div class="pg-sub">// body parts catalogue</div></div>
+                    <button class="btn-amber" onclick="ItemController.openAddModal()"><i class="bi bi-plus-lg me-1"></i>ADD PART</button>
+                </div>
+                <div class="card-pos mb-3" style="padding:14px 18px">
+                    <div class="row g-2 align-items-center">
+                        <div class="col-auto flex-grow-1"><div class="search-wrap w-100" style="max-width:100%"><i class="bi bi-search"></i><input type="text" class="form-control" id="item-search" placeholder="Search parts…" oninput="ItemController.search()"></div></div>
+                        <div class="col-auto">
+                            <select class="form-select" id="item-filter-stock" onchange="ItemController.search()" style="width:160px">
+                                <option value="">All Stock</option>
+                                <option value="ok">In Stock</option>
+                                <option value="low">Low Stock</option>
+                                <option value="out">Out of Stock</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-pos">
+                    <div class="card-body-pos" style="padding:0">
+                        <table class="table-pos"><thead><tr><th>CODE</th><th>PART NAME</th><th>CATEGORY</th><th>UNIT PRICE</th><th>STOCK</th><th>ACTIONS</th></tr></thead>
+                            <tbody id="item-table-body"></tbody></table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ── NEW ORDER ── -->
+            <div id="page-order" class="page">
+                <div class="pg-header"><div class="pg-title">NEW ORDER</div><div class="pg-sub">// place a new sale</div></div>
+                <div class="row g-3">
+                    <!-- LEFT: customer + item selection -->
+                    <div class="col-lg-7">
+                        <div class="card-pos mb-3">
+                            <div class="card-header-pos"><h6><i class="bi bi-person me-2"></i>SELECT CUSTOMER</h6></div>
+                            <div class="card-body-pos">
+                                <div class="row g-2">
+                                    <div class="col">
+                                        <select class="form-select" id="order-customer">
+                                            <option value="">— Choose Customer —</option>
+                                        </select>
+                                        <div class="invalid-feedback-pos" id="order-customer-err" style="display:none">Select a customer</div>
+                                    </div>
+                                    <div class="col-auto">
+                                        <button class="btn-outline-pos" style="height:100%" onclick="CustomerController.openAddModal(true)"><i class="bi bi-person-plus"></i></button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-pos">
+                            <div class="card-header-pos">
+                                <h6><i class="bi bi-boxes me-2"></i>SELECT PARTS</h6>
+                                <div class="search-wrap" style="max-width:200px"><i class="bi bi-search"></i><input type="text" class="form-control" id="order-item-search" placeholder="Search parts…" oninput="OrderController.filterItemGrid()"></div>
+                            </div>
+                            <div class="card-body-pos">
+                                <div class="item-grid" id="order-item-grid"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- RIGHT: cart -->
+                    <div class="col-lg-5">
+                        <div class="card-pos" style="position:sticky;top:72px">
+                            <div class="card-header-pos">
+                                <h6><i class="bi bi-cart3 me-2"></i>ORDER CART</h6>
+                                <span class="code-badge" id="order-id-display">—</span>
+                            </div>
+                            <div class="card-body-pos">
+                                <div id="order-cart-items">
+                                    <div class="empty-state"><i class="bi bi-cart-x"></i><p>No parts added yet</p></div>
+                                </div>
+                                <div class="order-summary" id="order-summary" style="display:none">
+                                    <div class="order-total-line"><span>Subtotal</span><span id="ot-subtotal" style="font-family:var(--font-mono)">Rs 0.00</span></div>
+                                    <div class="order-total-line"><span>Discount</span>
+                                        <div style="display:flex;align-items:center;gap:6px">
+                                            <input type="number" id="order-discount" class="form-control" style="width:70px;padding:4px 8px;font-family:var(--font-mono);font-size:12px" value="0" min="0" max="100" oninput="OrderController.recalc()"> <span style="font-family:var(--font-mono);font-size:11px;color:var(--muted)">%</span>
+                                        </div>
+                                    </div>
+                                    <div class="order-total-line" style="margin-top:12px;border-top:1px solid var(--border);padding-top:12px"><span style="font-family:var(--font-display);font-size:16px;font-weight:700">GRAND TOTAL</span><span class="order-grand" id="ot-grand">Rs 0.00</span></div>
+                                    <div class="order-total-line mt-2"><span>Cash Tendered</span>
+                                        <input type="number" id="order-cash" class="form-control" style="width:110px;padding:4px 8px;font-family:var(--font-mono);font-size:12px" placeholder="0.00" min="0" oninput="OrderController.recalc()">
+                                    </div>
+                                    <div class="order-total-line"><span>Change</span><span id="ot-change" style="font-family:var(--font-mono);color:var(--success)">Rs 0.00</span></div>
+                                    <button class="btn-amber w-100 mt-3" style="font-size:16px;padding:13px" onclick="OrderController.placeOrder()"><i class="bi bi-check2-circle me-2"></i>PLACE ORDER</button>
+                                    <button class="btn-outline-pos w-100 mt-2" onclick="OrderController.clearCart()">CLEAR CART</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ── ORDER HISTORY ── -->
+            <div id="page-history" class="page">
+                <div class="pg-header d-flex justify-content-between align-items-start">
+                    <div><div class="pg-title">ORDER HISTORY</div><div class="pg-sub">// all recorded transactions</div></div>
+                    <div class="search-wrap"><i class="bi bi-search"></i><input type="text" class="form-control" id="history-search" placeholder="Search orders…" oninput="HistoryController.search()"></div>
+                </div>
+                <div id="history-list"><div class="empty-state"><i class="bi bi-clock-history"></i><p>No orders recorded</p></div></div>
+            </div>
+
+        </div><!-- /content -->
+    </div><!-- /shell -->
+</div><!-- /app-view -->
+
+<!-- ═══ TOAST ═══ -->
+<div id="toast-container"></div>
+
+<!-- ═══ MODALS ═══ -->
+<!-- Customer Modal -->
+<div class="modal fade modal-pos" id="customerModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header"><h5 class="modal-title" id="customerModalTitle">ADD CUSTOMER</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+            <div class="modal-body">
+                <input type="hidden" id="cust-id">
+                <div class="mb-3"><label class="form-label">Full Name *</label><input type="text" id="cust-name" class="form-control" placeholder="e.g. Kasun Perera"><div class="invalid-feedback-pos" id="err-cust-name" style="display:none">Name is required</div></div>
+                <div class="mb-3"><label class="form-label">Phone Number *</label><input type="text" id="cust-phone" class="form-control" placeholder="e.g. 0711234567"><div class="invalid-feedback-pos" id="err-cust-phone" style="display:none">Enter a valid 10-digit phone</div></div>
+                <div class="mb-3"><label class="form-label">Address</label><input type="text" id="cust-address" class="form-control" placeholder="e.g. 45/B Galle Rd, Colombo 3"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn-outline-pos" data-bs-dismiss="modal">CANCEL</button>
+                <button type="button" class="btn-amber" onclick="CustomerController.save()">SAVE CUSTOMER</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Item Modal -->
+<div class="modal fade modal-pos" id="itemModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header"><h5 class="modal-title" id="itemModalTitle">ADD PART</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+            <div class="modal-body">
+                <input type="hidden" id="item-id">
+                <div class="row g-3">
+                    <div class="col-6"><label class="form-label">Part Code *</label><input type="text" id="item-code" class="form-control" placeholder="e.g. BP-001"><div class="invalid-feedback-pos" id="err-item-code" style="display:none">Unique code required</div></div>
+                    <div class="col-6"><label class="form-label">Category</label>
+                        <select class="form-select" id="item-cat">
+                            <option>Bumpers</option><option>Doors</option><option>Bonnets & Boots</option><option>Fenders & Guards</option><option>Side Mirrors</option><option>Grilles</option><option>Headlights & Taillights</option><option>Glass & Windscreens</option><option>Other Body Parts</option>
+                        </select>
+                    </div>
+                    <div class="col-12"><label class="form-label">Part Name *</label><input type="text" id="item-name" class="form-control" placeholder="e.g. Front Bumper - Toyota Aqua"><div class="invalid-feedback-pos" id="err-item-name" style="display:none">Name is required</div></div>
+                    <div class="col-6"><label class="form-label">Unit Price (Rs) *</label><input type="number" id="item-price" class="form-control" placeholder="0.00" min="0" step="0.01"><div class="invalid-feedback-pos" id="err-item-price" style="display:none">Valid price required</div></div>
+                    <div class="col-6"><label class="form-label">Stock Qty *</label><input type="number" id="item-qty" class="form-control" placeholder="0" min="0"><div class="invalid-feedback-pos" id="err-item-qty" style="display:none">Quantity required</div></div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn-outline-pos" data-bs-dismiss="modal">CANCEL</button>
+                <button type="button" class="btn-amber" onclick="ItemController.save()">SAVE PART</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirm Modal -->
+<div class="modal fade modal-pos" id="confirmModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+        <div class="modal-content">
+            <div class="modal-header"><h5 class="modal-title">CONFIRM DELETE</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+            <div class="modal-body"><p id="confirm-msg" style="color:var(--muted);font-size:13px"></p></div>
+            <div class="modal-footer">
+                <button type="button" class="btn-outline-pos" data-bs-dismiss="modal">CANCEL</button>
+                <button type="button" id="confirm-yes" class="btn-danger-pos" style="padding:9px 20px;font-size:14px">DELETE</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Order Confirm Modal -->
+<div class="modal fade modal-pos" id="orderConfirmModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header" style="background:rgba(62,207,142,.06);border-bottom-color:rgba(62,207,142,.2)">
+                <h5 class="modal-title" style="color:var(--success)"><i class="bi bi-check-circle-fill me-2"></i>ORDER PLACED</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="order-confirm-body"></div>
+            <div class="modal-footer">
+                <button type="button" class="btn-outline-pos" data-bs-dismiss="modal" onclick="OrderController.newOrder()">NEW ORDER</button>
+                <button type="button" class="btn-amber" data-bs-dismiss="modal" onclick="navigate('history')">VIEW HISTORY</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.7.0/dist/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<!-- ═══ SCRIPTS ═══ -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="assets/lib/jquery-4.0.0.min.js"></script>
+
+<!-- Data -->
+<script src="db/db.js"></script>
+
+<!-- Utilities -->
+<script src="utils/helpers.js"></script>
+
+<!-- Controllers -->
+<script src="controller/AuthController.js"></script>
+<script src="controller/DashController.js"></script>
+<script src="controller/CustomerController.js"></script>
+<script src="controller/ItemController.js"></script>
+<script src="controller/OrderController.js"></script>
+<script src="controller/HistoryController.js"></script>
+
+<!-- App Init -->
+<script src="main.js"></script>
+
+</body>
+</html>
