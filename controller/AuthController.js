@@ -1,8 +1,5 @@
 // Auth Controller
 
-// ════════════════════════════════════════════
-//  AUTH CONTROLLER
-// ════════════════════════════════════════════
 const AuthController = {
     login(){
         const u = $('#login-user').val().trim();

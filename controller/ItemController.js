@@ -1,8 +1,5 @@
 // Item / Inventory Controller
 
-// ════════════════════════════════════════════
-//  ITEM CONTROLLER
-// ════════════════════════════════════════════
 const ItemController = {
     render(data=null){
         const list = data || Model.items;

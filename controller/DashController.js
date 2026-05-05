@@ -1,8 +1,5 @@
 // Dashboard Controller
 
-// ════════════════════════════════════════════
-//  DASHBOARD CONTROLLER
-// ════════════════════════════════════════════
 const DashController = {
 
     // SVG illustrations per category - always renders, no external deps

@@ -1,8 +1,5 @@
 // Order Controller
 
-// ════════════════════════════════════════════
-//  ORDER CONTROLLER
-// ════════════════════════════════════════════
 const OrderController = {
     _orderId: null,
 

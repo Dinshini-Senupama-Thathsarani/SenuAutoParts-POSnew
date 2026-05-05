@@ -1,8 +1,5 @@
 // Customer Controller
 
-// ════════════════════════════════════════════
-//  CUSTOMER CONTROLLER
-// ════════════════════════════════════════════
 const CustomerController = {
     _fromOrder: false,
 

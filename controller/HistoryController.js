@@ -1,8 +1,5 @@
 // History Controller
 
-// ════════════════════════════════════════════
-//  HISTORY CONTROLLER
-// ════════════════════════════════════════════
 const HistoryController = {
     render(data=null){
         const list = data || [...Model.orders].reverse();
