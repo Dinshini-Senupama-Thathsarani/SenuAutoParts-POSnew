@@ -1,31 +1,33 @@
-// Auth Controller
+// ── AUTH CONTROLLER ─────────────────────────
 
 const AuthController = {
-    login(){
-        const u = $('#login-user').val().trim();
-        const p = $('#login-pass').val().trim();
-        if(u==='admin' && p==='admin123'){
-            Model.currentUser = u;
-            $('#login-view').fadeOut(200,()=>{
-                $('#app-view').css('display','flex').hide().fadeIn(200);
-                $('#topbar-user').text(u.toUpperCase());
-                DashController.refresh();
-            });
+
+    login() {
+        const user = $('#login-user').val().trim();
+        const pass = $('#login-pass').val().trim();
+
+        if (user === 'admin' && pass === 'admin123') {
+            DB.currentUser = user;
             $('#login-error').hide();
+            $('#login-view').fadeOut(200, () => {
+                $('#topbar-user').text(user.toUpperCase());
+                $('#app-view').css('display', 'flex').fadeIn(200);
+                navigate('dashboard');
+            });
         } else {
             $('#login-error').show();
-            $('#login-pass').val('').addClass('is-invalid-pos');
-            setTimeout(()=>$('#login-pass').removeClass('is-invalid-pos'),1500);
+            $('#login-pass').val('').addClass('is-invalid');
+            setTimeout(() => $('#login-pass').removeClass('is-invalid'), 1500);
         }
     },
-    logout(){
-        Model.currentUser = null;
-        Model.cart = [];
-        $('#app-view').fadeOut(200,()=>{
+
+    logout() {
+        DB.currentUser = null;
+        DB.cart = [];
+        $('#app-view').fadeOut(200, () => {
+            $('#login-user').val('');
+            $('#login-pass').val('');
             $('#login-view').fadeIn(200);
-            $('#login-user').val(''); $('#login-pass').val('');
         });
     }
 };
-
-$('#login-pass').on('keypress',e=>{ if(e.which===13) AuthController.login(); });

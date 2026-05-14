@@ -1,195 +1,170 @@
-// Order Controller
+// ── ORDER CONTROLLER ────────────────────────
 
 const OrderController = {
-    _orderId: null,
 
-    init(){
-        this._orderId = Model.nextOrderId();
-        Model.ordIdSeq = (Model.ordIdSeq||1); // keep consistent
-        Model.orderIdSeq--; // will be re-assigned on place
-        this._orderId = null;
-        this.refreshCustomerDropdown();
-        this.renderItemGrid();
+    init() {
+        // Refresh customer dropdown
+        $('#order-customer').html('<option value="">— Select Customer —</option>' +
+            DB.customers.map(c => `<option value="${c.id}">${c.name} (${c.phone})</option>`).join(''));
+        this.renderGrid();
         this.renderCart();
         $('#order-discount').val(0);
         $('#order-cash').val('');
     },
 
-    refreshCustomerDropdown(){
-        const cur = $('#order-customer').val();
-        $('#order-customer').html('<option value="">— Choose Customer —</option>' +
-            Model.customers.map(c=>`<option value="${c.id}" ${c.id==cur?'selected':''}>${c.name} — ${c.phone}</option>`).join(''));
-    },
+    renderGrid() {
+        const q = $('#order-search').val().toLowerCase();
+        const list = DB.items.filter(i =>
+            !q || i.name.toLowerCase().includes(q) || i.id.toLowerCase().includes(q)
+        );
 
-    renderItemGrid(query=''){
-        const q = query.toLowerCase();
-        const list = Model.items.filter(i=>!q||(i.name.toLowerCase().includes(q)||i.code.toLowerCase().includes(q)));
-        if(list.length===0){ $('#order-item-grid').html('<div style="grid-column:1/-1"><div class="empty-state"><i class="bi bi-boxes"></i><p>No parts found</p></div></div>'); return; }
-        $('#order-item-grid').html(list.map(i=>{
-            const inCart = Model.cart.find(c=>c.itemId===i.id);
-            const out = i.qty===0;
-            const sc = i.qty===0?'stock-out':i.qty<=5?'stock-low':'stock-ok';
-            return `<div class="item-tile ${inCart?'selected':''} ${out?'out':''}" onclick="OrderController.addToCart(${i.id})" id="tile-${i.id}">
-    <div class="item-tile-code">${i.code}</div>
-    <div class="item-tile-name">${i.name}</div>
-    <div class="item-tile-price">${fmt(i.price)}</div>
-    <div class="item-tile-stock"><span class="stock-badge ${sc}">${out?'OUT':i.qty+' left'}</span></div>
-    ${inCart?'<div style="margin-top:4px"><i class="bi bi-check-circle-fill" style="color:var(--amber);font-size:12px"></i></div>':''}
-  </div>`;
+        if (!list.length) {
+            $('#order-grid').html('<p class="empty-cell" style="grid-column:1/-1">No parts found</p>');
+            return;
+        }
+
+        $('#order-grid').html(list.map(i => {
+            const inCart = DB.cart.find(c => c.id === i.id);
+            const out    = i.qty === 0;
+            return `
+            <div class="part-tile ${inCart ? 'selected' : ''} ${out ? 'disabled' : ''}"
+                 onclick="${out ? '' : `OrderController.addToCart('${i.id}')`}">
+                <div class="tile-code">${i.id}</div>
+                <div class="tile-name">${i.name}</div>
+                <div class="tile-price">${fmt(i.price)}</div>
+                <div class="tile-stock ${i.qty === 0 ? 'badge-out' : i.qty <= 5 ? 'badge-low' : 'badge-ok'}">
+                    ${out ? 'OUT' : i.qty + ' left'}
+                </div>
+                ${inCart ? '<div class="tile-check"><i class="bi bi-check-circle-fill"></i></div>' : ''}
+            </div>`;
         }).join(''));
     },
 
-    filterItemGrid(){
-        this.renderItemGrid($('#order-item-search').val());
-    },
-
-    addToCart(itemId){
-        const it = Model.getItemById(itemId);
-        if(!it||it.qty===0) return;
-        const existing = Model.cart.find(c=>c.itemId===itemId);
-        if(existing){
-            if(existing.qty < it.qty){ existing.qty++; }
-            else { toast(`Max stock reached (${it.qty})`, 'warn'); return; }
+    addToCart(id) {
+        const item  = DB.getItem(id);
+        if (!item || item.qty === 0) return;
+        const entry = DB.cart.find(c => c.id === id);
+        if (entry) {
+            if (entry.qty < item.qty) entry.qty++;
+            else { toast(`Max stock: ${item.qty}`, 'warn'); return; }
         } else {
-            Model.cart.push({itemId, name:it.name, code:it.code, price:it.price, qty:1, maxQty:it.qty});
+            DB.cart.push({ id: item.id, name: item.name, price: item.price, qty: 1, maxQty: item.qty });
         }
         this.renderCart();
-        this.renderItemGrid($('#order-item-search').val());
+        this.renderGrid();
     },
 
-    removeFromCart(itemId){
-        Model.cart = Model.cart.filter(c=>c.itemId!==itemId);
+    removeFromCart(id) {
+        DB.cart = DB.cart.filter(c => c.id !== id);
         this.renderCart();
-        this.renderItemGrid($('#order-item-search').val());
+        this.renderGrid();
     },
 
-    updateQty(itemId, val){
-        const c = Model.cart.find(c=>c.itemId===itemId);
-        if(!c) return;
+    updateQty(id, val) {
+        const entry = DB.cart.find(c => c.id === id);
+        if (!entry) return;
         const n = parseInt(val);
-        if(isNaN(n)||n<1){ c.qty=1; }
-        else if(n>c.maxQty){ c.qty=c.maxQty; toast(`Max available: ${c.maxQty}`, 'warn'); }
-        else { c.qty=n; }
+        entry.qty = isNaN(n) || n < 1 ? 1 : n > entry.maxQty ? entry.maxQty : n;
         this.renderCart();
     },
 
-    renderCart(){
-        if(Model.cart.length===0){
-            $('#order-cart-items').html('<div class="empty-state"><i class="bi bi-cart-x"></i><p>No parts added yet</p></div>');
-            $('#order-summary').hide();
+    renderCart() {
+        if (!DB.cart.length) {
+            $('#cart-items').html('<p class="empty-cell">No parts added yet</p>');
+            $('#cart-summary').hide();
             return;
         }
-        $('#order-cart-items').html(Model.cart.map(c=>`
-  <div class="order-item-row">
-    <div style="flex:1">
-      <div class="order-item-name">${c.name}</div>
-      <div class="order-item-code">${c.code} · ${fmt(c.price)} each</div>
-    </div>
-    <input type="number" class="form-control order-qty-input" value="${c.qty}" min="1" max="${c.maxQty}"
-      onchange="OrderController.updateQty(${c.itemId}, this.value)"
-      style="width:60px;padding:5px 8px;font-family:var(--font-mono);font-size:12px">
-    <div class="order-item-total">${fmt(c.price * c.qty)}</div>
-    <button onclick="OrderController.removeFromCart(${c.itemId})" style="background:none;border:none;color:var(--muted);cursor:pointer;padding:4px;font-size:16px" title="Remove">
-      <i class="bi bi-x-lg"></i>
-    </button>
-  </div>`).join(''));
-        $('#order-summary').show();
+
+        $('#cart-items').html(DB.cart.map(c => `
+            <div class="cart-row">
+                <div class="cart-info">
+                    <div class="cart-name">${c.name}</div>
+                    <div class="cart-sub">${c.id} · ${fmt(c.price)} each</div>
+                </div>
+                <input type="number" class="qty-input" value="${c.qty}" min="1" max="${c.maxQty}"
+                    onchange="OrderController.updateQty('${c.id}', this.value)">
+                <div class="cart-total">${fmt(c.price * c.qty)}</div>
+                <button class="btn-remove" onclick="OrderController.removeFromCart('${c.id}')">
+                    <i class="bi bi-x-lg"></i>
+                </button>
+            </div>`).join(''));
+
+        $('#cart-summary').show();
         this.recalc();
     },
 
-    recalc(){
-        const sub = Model.cart.reduce((s,c)=>s+(c.price*c.qty),0);
-        const disc = Math.max(0, Math.min(100, parseFloat($('#order-discount').val())||0));
-        const grand = sub * (1 - disc/100);
-        const cash = parseFloat($('#order-cash').val())||0;
+    recalc() {
+        const sub   = DB.cart.reduce((s, c) => s + c.price * c.qty, 0);
+        const disc  = Math.max(0, Math.min(100, parseFloat($('#order-discount').val()) || 0));
+        const grand = sub * (1 - disc / 100);
+        const cash  = parseFloat($('#order-cash').val()) || 0;
         const change = Math.max(0, cash - grand);
-        $('#ot-subtotal').text(fmt(sub));
+
+        $('#ot-sub').text(fmt(sub));
         $('#ot-grand').text(fmt(grand));
-        $('#ot-change').text(fmt(change));
-        if(cash > 0 && cash < grand){
-            $('#ot-change').css('color','var(--danger)').text('⚠ Insufficient');
+
+        if (cash > 0 && cash < grand) {
+            $('#ot-change').text('⚠ Insufficient').css('color', 'var(--danger)');
         } else {
-            $('#ot-change').css('color','var(--success)');
+            $('#ot-change').text(fmt(change)).css('color', 'var(--success)');
         }
     },
 
-    clearCart(){
-        Model.cart = [];
-        this.renderCart();
-        this.renderItemGrid();
-    },
+    placeOrder() {
+        const custId = $('#order-customer').val();
+        if (!custId) { toast('Select a customer first', 'error'); return; }
+        if (!DB.cart.length) { toast('Add at least one part', 'error'); return; }
 
-    placeOrder(){
-        // Validate customer
-        const custId = parseInt($('#order-customer').val());
-        if(!custId){ $('#order-customer').addClass('is-invalid-pos'); $('#order-customer-err').show(); toast('Please select a customer','error'); return; }
-        $('#order-customer').removeClass('is-invalid-pos'); $('#order-customer-err').hide();
+        const sub   = DB.cart.reduce((s, c) => s + c.price * c.qty, 0);
+        const disc  = Math.max(0, Math.min(100, parseFloat($('#order-discount').val()) || 0));
+        const grand = sub * (1 - disc / 100);
+        const cash  = parseFloat($('#order-cash').val()) || 0;
 
-        if(Model.cart.length===0){ toast('Add at least one part to the order','error'); return; }
+        if (cash > 0 && cash < grand) { toast('Cash is less than total', 'error'); return; }
 
-        const cash = parseFloat($('#order-cash').val())||0;
-        const sub = Model.cart.reduce((s,c)=>s+(c.price*c.qty),0);
-        const disc = Math.max(0, Math.min(100, parseFloat($('#order-discount').val())||0));
-        const grand = sub*(1-disc/100);
-
-        if(cash > 0 && cash < grand){ toast('Cash tendered is less than grand total','error'); return; }
-
-        const customer = Model.getCustomerById(custId);
-        const orderId = Model.nextOrderId();
+        const customer = DB.getCustomer(custId);
+        const orderId  = DB.nextOrdId();
 
         // Deduct stock
-        Model.cart.forEach(c=>{
-            const it = Model.getItemById(c.itemId);
-            it.qty -= c.qty;
+        DB.cart.forEach(c => { DB.getItem(c.id).qty -= c.qty; });
+
+        // Save order
+        DB.orders.push({
+            id: orderId,
+            customerId:   customer.id,
+            customerName: customer.name,
+            items:        DB.cart.map(c => ({ ...c })),
+            subtotal: sub, discount: disc, grand, cash,
+            change: Math.max(0, cash - grand),
+            date: nowStr()
         });
 
-        // Record order
-        const order = {
-            id: orderId,
-            customerId: custId,
-            customerName: customer.name,
-            customerPhone: customer.phone,
-            items: Model.cart.map(c=>({...c})),
-            subtotal: sub,
-            discount: disc,
-            grand: grand,
-            cash: cash,
-            change: Math.max(0, cash-grand),
-            date: now()
-        };
-        Model.orders.push(order);
-        Model.cart = [];
+        // Show receipt modal
+        $('#receipt-body').html(`
+            <div class="receipt-row"><span>Order ID</span><strong>${orderId}</strong></div>
+            <div class="receipt-row"><span>Customer</span><strong>${customer.name}</strong></div>
+            <div class="receipt-row"><span>Parts</span><strong>${DB.cart.length} item(s)</strong></div>
+            <div class="receipt-row"><span>Discount</span><strong>${disc}%</strong></div>
+            <hr>
+            <div class="receipt-row grand"><span>GRAND TOTAL</span><strong>${fmt(grand)}</strong></div>
+            ${cash ? `<div class="receipt-row"><span>Change</span><strong style="color:var(--success)">${fmt(Math.max(0, cash - grand))}</strong></div>` : ''}
+            <div class="receipt-date">${nowStr()}</div>
+        `);
 
-        // Show confirmation
-        $('#order-confirm-body').html(`
-  <div style="text-align:center;margin-bottom:20px">
-    <span class="code-badge" style="font-size:16px;padding:8px 16px">${orderId}</span>
-  </div>
-  <div style="display:flex;justify-content:space-between;margin-bottom:8px">
-    <span style="color:var(--muted)">Customer</span><strong>${customer.name}</strong>
-  </div>
-  <div style="display:flex;justify-content:space-between;margin-bottom:8px">
-    <span style="color:var(--muted)">Items</span><span>${order.items.length} part(s)</span>
-  </div>
-  <div style="display:flex;justify-content:space-between;margin-bottom:8px">
-    <span style="color:var(--muted)">Discount</span><span>${disc}%</span>
-  </div>
-  <div style="display:flex;justify-content:space-between;margin-bottom:8px;border-top:1px solid var(--border);padding-top:10px">
-    <span style="font-family:var(--font-display);font-size:16px;font-weight:700">GRAND TOTAL</span>
-    <span style="font-family:var(--font-display);font-size:20px;font-weight:800;color:var(--amber)">${fmt(grand)}</span>
-  </div>
-  ${cash>0?`<div style="display:flex;justify-content:space-between"><span style="color:var(--muted)">Change</span><span style="color:var(--success);font-family:var(--font-mono)">${fmt(Math.max(0,cash-grand))}</span></div>`:''}
-  <div style="text-align:center;margin-top:16px;color:var(--muted);font-family:var(--font-mono);font-size:11px">${order.date}</div>
-`);
-
-        bootstrap.Modal.getOrCreateInstance(document.getElementById('orderConfirmModal')).show();
-        DashController.refresh();
-        toast(`Order ${orderId} placed successfully!`);
+        DB.cart = [];
+        bootstrap.Modal.getOrCreateInstance(document.getElementById('receiptModal')).show();
+        DashController.render();
+        toast(`${orderId} placed!`);
     },
 
-    newOrder(){
-        Model.cart = [];
-        $('#order-customer').val('');
+    clearCart() {
+        DB.cart = [];
+        this.renderCart();
+        this.renderGrid();
+    },
+
+    newOrder() {
+        DB.cart = [];
         this.init();
     }
 };
