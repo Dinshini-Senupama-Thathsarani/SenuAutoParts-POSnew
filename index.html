@@ -45,6 +45,25 @@
         </div>
     </div>
 
+    <!-- BOTTOM NAV (mobile) -->
+    <div class="bottom-nav">
+        <div class="bnav-item active" data-page="dashboard" onclick="navigate('dashboard')">
+            <i class="bi bi-grid-1x2"></i><span>Home</span>
+        </div>
+        <div class="bnav-item" data-page="order" onclick="navigate('order')">
+            <i class="bi bi-receipt"></i><span>Order</span>
+        </div>
+        <div class="bnav-item" data-page="customers" onclick="navigate('customers')">
+            <i class="bi bi-people"></i><span>Customers</span>
+        </div>
+        <div class="bnav-item" data-page="items" onclick="navigate('items')">
+            <i class="bi bi-boxes"></i><span>Inventory</span>
+        </div>
+        <div class="bnav-item" data-page="history" onclick="navigate('history')">
+            <i class="bi bi-clock-history"></i><span>History</span>
+        </div>
+    </div>
+
     <!-- SHELL -->
     <div class="shell">
 
@@ -121,19 +140,23 @@
                                 <span><i class="bi bi-receipt me-2"></i>Recent Orders</span>
                                 <button class="btn-outline" onclick="navigate('history')" style="padding:5px 12px;font-size:12px">View All</button>
                             </div>
-                            <table class="tbl">
-                                <thead><tr><th>ORDER ID</th><th>CUSTOMER</th><th>TOTAL</th><th>DATE</th></tr></thead>
-                                <tbody id="dash-orders"><tr><td colspan="4" class="empty-cell">No orders yet</td></tr></tbody>
-                            </table>
+                            <div class="table-wrap">
+                                <table class="tbl">
+                                    <thead><tr><th>ORDER ID</th><th>CUSTOMER</th><th>TOTAL</th><th>DATE</th></tr></thead>
+                                    <tbody id="dash-orders"><tr><td colspan="4" class="empty-cell">No orders yet</td></tr></tbody>
+                                </table>
+                            </div>
                         </div>
                     </div>
                     <div class="col-md-5">
                         <div class="card">
                             <div class="card-head"><span><i class="bi bi-exclamation-triangle me-2" style="color:var(--warn)"></i>Low Stock Alert</span></div>
-                            <table class="tbl">
-                                <thead><tr><th>PART</th><th>CODE</th><th>QTY</th></tr></thead>
-                                <tbody id="dash-lowstock"><tr><td colspan="3" class="empty-cell">All OK</td></tr></tbody>
-                            </table>
+                            <div class="table-wrap">
+                                <table class="tbl">
+                                    <thead><tr><th>PART</th><th>CODE</th><th>QTY</th></tr></thead>
+                                    <tbody id="dash-lowstock"><tr><td colspan="3" class="empty-cell">All OK</td></tr></tbody>
+                                </table>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -184,10 +207,12 @@
                                     <input type="text" id="cust-search" class="form-control" placeholder="Search…" oninput="CustomerController.loadTable()">
                                 </div>
                             </div>
-                            <table class="tbl">
-                                <thead><tr><th>#</th><th>NAME</th><th>PHONE</th><th>ADDRESS</th><th>ACTIONS</th></tr></thead>
-                                <tbody id="cust-tbody"><tr><td colspan="5" class="empty-cell">No customers</td></tr></tbody>
-                            </table>
+                            <div class="table-wrap">
+                                <table class="tbl">
+                                    <thead><tr><th>#</th><th>NAME</th><th>PHONE</th><th>ADDRESS</th><th>ACTIONS</th></tr></thead>
+                                    <tbody id="cust-tbody"><tr><td colspan="5" class="empty-cell">No customers</td></tr></tbody>
+                                </table>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -267,10 +292,12 @@
                                     </select>
                                 </div>
                             </div>
-                            <table class="tbl">
-                                <thead><tr><th>CODE</th><th>PART NAME</th><th>CATEGORY</th><th>PRICE</th><th>STOCK</th><th>ACTIONS</th></tr></thead>
-                                <tbody id="item-tbody"><tr><td colspan="6" class="empty-cell">No parts</td></tr></tbody>
-                            </table>
+                            <div class="table-wrap">
+                                <table class="tbl">
+                                    <thead><tr><th>CODE</th><th>PART NAME</th><th>CATEGORY</th><th>PRICE</th><th>STOCK</th><th>ACTIONS</th></tr></thead>
+                                    <tbody id="item-tbody"><tr><td colspan="6" class="empty-cell">No parts</td></tr></tbody>
+                                </table>
+                            </div>
                         </div>
                     </div>
                 </div>
