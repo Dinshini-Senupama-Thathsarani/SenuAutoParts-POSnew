@@ -1,4 +1,4 @@
-// ── HISTORY CONTROLLER ──────────────────────
+
 
 const HistoryController = {
 

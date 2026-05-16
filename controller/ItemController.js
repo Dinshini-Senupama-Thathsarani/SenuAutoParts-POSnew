@@ -1,4 +1,4 @@
-// ── ITEM CONTROLLER ─────────────────────────
+
 
 const ItemController = {
 

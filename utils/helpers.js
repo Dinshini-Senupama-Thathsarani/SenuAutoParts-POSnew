@@ -1,4 +1,4 @@
-// ── HELPERS ─────────────────────────────────
+
 
 function fmt(n) {
     return 'Rs ' + parseFloat(n).toLocaleString('en-LK', { minimumFractionDigits: 2, maximumFractionDigits: 2 });

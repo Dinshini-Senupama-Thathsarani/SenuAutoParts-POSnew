@@ -1,4 +1,4 @@
-// ── AUTH CONTROLLER ─────────────────────────
+
 
 const AuthController = {
 
